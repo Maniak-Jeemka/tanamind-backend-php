@@ -19,32 +19,26 @@ class MLService
         // ====================================================================
         // DUMMY — hapus blok ini setelah FastAPI siap, lalu uncomment blok di bawah
         // ====================================================================
-        return [
-            'disease'             => 'bercak',
-            'disease_confidence'  => 0.92,
-            'severity'            => 'sedang',
-            'severity_confidence' => 0.87,
-        ];
+        // return [
+        //     'disease'             => 'bercak',
+        //     'disease_confidence'  => 0.92,
+        //     'severity'            => 'sedang',
+        //     'severity_confidence' => 0.87,
+        // ];
 
-        // ====================================================================
-        // REAL — uncomment blok ini setelah FastAPI siap
-        // ====================================================================
-        // $url = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://localhost:8001')), '/');
-        //
-        // try {
-        //     $response = Http::attach(
-        //         'image',
-        //         file_get_contents($imagePath),
-        //         basename($imagePath)
-        //     )->post("{$url}/predict");
-        //
-        //     if ($response->failed()) {
-        //         throw new Exception('ML Service mengembalikan error: ' . $response->status());
-        //     }
-        //
-        //     return $response->json();
-        // } catch (\Illuminate\Http\Client\ConnectionException $e) {
-        //     throw new Exception('ML Service tidak tersedia');
-        // }
+        // TODO: hapus withoutVerifying() setelah SSL certificate dikonfigurasi di production
+        try {
+            $response = Http::withoutVerifying()
+                ->attach('image', file_get_contents($imagePath), 'foto.jpg')
+                ->post(rtrim(env('ML_SERVICE_URL', 'https://indahsrie-tanamind-ml.hf.space'), '/') . '/predict');
+
+            if ($response->failed()) {
+                throw new Exception('ML Service mengembalikan error: ' . $response->status());
+            }
+
+            return $response->json();
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            throw new Exception('ML Service tidak tersedia');
+        }
     }
 }
