@@ -30,4 +30,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function scanResults()
+    {
+        return $this->hasMany(ScanResult::class);
+    }
 }
