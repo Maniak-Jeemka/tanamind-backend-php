@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommentController;
 
 // Public routes — tidak perlu token
 Route::prefix('auth')->group(function () {
@@ -19,4 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/scan',       [ScanController::class, 'store']);
     Route::get('/scan',        [ScanController::class, 'index']);
     Route::get('/scan/{id}',   [ScanController::class, 'show']);
+
+    // Community
+    Route::get('/community',                [CommunityController::class, 'index']);
+    Route::post('/community',               [CommunityController::class, 'store']);
+    Route::post('/community/{id}/comments', [CommentController::class, 'store']);
 });
