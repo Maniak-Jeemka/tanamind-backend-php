@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DiseaseController;
 use App\Http\Controllers\Admin\AdminController;
 
 // Public routes — tidak perlu token
@@ -27,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/community',                [CommunityController::class, 'index']);
     Route::post('/community',               [CommunityController::class, 'store']);
     Route::post('/community/{id}/comments', [CommentController::class, 'store']);
+
+    // Diseases
+    Route::get('/diseases', [DiseaseController::class, 'index']);
 });
 
 // Admin routes — wajib login + role admin

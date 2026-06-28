@@ -18,6 +18,8 @@ return new class extends Migration
             $table->text('action');
             $table->text('prevention')->nullable();
             $table->timestamps();
+
+            $table->unique(['disease_id', 'severity']);
         });
     }
 
