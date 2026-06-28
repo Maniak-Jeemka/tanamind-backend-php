@@ -17,6 +17,9 @@ class ScanController extends Controller
         $this->mlService = $mlService;
     }
 
+    /**
+     * Upload gambar dan jalankan prediksi ML.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -28,18 +31,22 @@ class ScanController extends Controller
 
         $prediction = $this->mlService->predict(storage_path('app/public/' . $path));
 
-        $disease = Disease::where('slug', $prediction['disease'])->first();
+        // Cari disease berdasarkan slug, null jika "healthy" atau tidak ditemukan
+        $disease = null;
+        if ($prediction['disease'] !== 'healthy') {
+            $disease = Disease::where('slug', $prediction['disease'])->first();
+        }
 
         $scanResult = ScanResult::create([
-            'user_id'              => Auth::id(),
-            'disease_id'           => $disease?->id,
-            'image_path'           => $path,
-            'disease_label'        => $prediction['disease'],
-            'disease_confidence'   => $prediction['disease_confidence'],
-            'severity_label'       => $prediction['severity'],
-            'severity_confidence'  => $prediction['severity_confidence'],
-            'notes'                => $validated['notes'] ?? null,
-            'is_shared'            => false,
+            'user_id'             => Auth::id(),
+            'disease_id'          => $disease?->id,
+            'image_path'          => $path,
+            'disease_label'       => $prediction['disease'],
+            'disease_confidence'  => $prediction['disease_confidence'],
+            'severity_label'      => $prediction['severity'],
+            'severity_confidence' => $prediction['severity_confidence'],
+            'notes'               => $validated['notes'] ?? null,
+            'is_shared'           => false,
         ]);
 
         $scanResult->load('disease.recommendations');
@@ -49,5 +56,47 @@ class ScanController extends Controller
             'message' => 'Scan berhasil',
             'data'    => $scanResult,
         ], 201);
+    }
+
+    /**
+     * Ambil semua riwayat scan milik user yang login.
+     */
+    public function index(Request $request)
+    {
+        $scans = ScanResult::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->with('disease')
+            ->get();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Riwayat scan berhasil diambil',
+            'data'    => $scans,
+        ], 200);
+    }
+
+    /**
+     * Lihat detail scan berdasarkan ID (hanya milik user yang login).
+     */
+    public function show(Request $request, $id)
+    {
+        $scanResult = ScanResult::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->with('disease.recommendations')
+            ->first();
+
+        if (!$scanResult) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Scan tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Detail scan berhasil diambil',
+            'data'    => $scanResult,
+        ], 200);
     }
 }

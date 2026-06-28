@@ -18,6 +18,20 @@ class ScanResult extends Model
         'is_shared',
     ];
 
+    /**
+     * Otomatis tambahkan image_url ke JSON output.
+     */
+    protected $appends = ['image_url'];
+
+    /**
+     * Cast tipe data kolom.
+     */
+    protected $casts = [
+        'disease_confidence'  => 'float',
+        'severity_confidence' => 'float',
+        'is_shared'           => 'boolean',
+    ];
+
     public function disease()
     {
         return $this->belongsTo(Disease::class);
@@ -28,6 +42,9 @@ class ScanResult extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Accessor: URL absolut ke gambar scan.
+     */
     public function getImageUrlAttribute()
     {
         return asset('storage/' . $this->image_path);

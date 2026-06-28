@@ -14,5 +14,9 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/user',         [AuthController::class, 'me']);
-    Route::post('/scan',        [ScanController::class, 'store']);
+
+    // Scan
+    Route::post('/scan',       [ScanController::class, 'store']);
+    Route::get('/scan',        [ScanController::class, 'index']);
+    Route::get('/scan/{id}',   [ScanController::class, 'show']);
 });
