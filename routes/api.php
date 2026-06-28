@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ScanController;
 
 // Public routes — tidak perlu token
 Route::prefix('auth')->group(function () {
@@ -12,5 +13,6 @@ Route::prefix('auth')->group(function () {
 // Protected routes — wajib kirim Bearer Token
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/user',         [AuthController::class, 'me']);
+    Route::post('/scan',        [ScanController::class, 'store']);
 });
