@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ScanResult;
 use App\Models\Disease;
+use Illuminate\Support\Facades\Storage;
 use App\Services\MLService;
 
 class ScanController extends Controller
@@ -97,6 +98,37 @@ class ScanController extends Controller
             'status'  => 'success',
             'message' => 'Detail scan berhasil diambil',
             'data'    => $scanResult,
+        ], 200);
+    }
+
+    /**
+     * Hapus scan result milik user yang login.
+     */
+    public function destroy(Request $request, $id)
+    {
+        $scanResult = ScanResult::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$scanResult) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Scan tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Hapus file gambar dari storage
+        if ($scanResult->image_path) {
+            Storage::disk('public')->delete($scanResult->image_path);
+        }
+
+        $scanResult->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Scan berhasil dihapus',
+            'data'    => null,
         ], 200);
     }
 }

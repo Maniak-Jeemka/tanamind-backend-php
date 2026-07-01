@@ -20,14 +20,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',         [AuthController::class, 'me']);
 
     // Scan
-    Route::post('/scan',       [ScanController::class, 'store']);
-    Route::get('/scan',        [ScanController::class, 'index']);
-    Route::get('/scan/{id}',   [ScanController::class, 'show']);
+    Route::post('/scan',         [ScanController::class, 'store']);
+    Route::get('/scan',          [ScanController::class, 'index']);
+    Route::get('/scan/{id}',     [ScanController::class, 'show']);
+    Route::delete('/scan/{id}',  [ScanController::class, 'destroy']);
 
     // Community
     Route::get('/community',                [CommunityController::class, 'index']);
     Route::post('/community',               [CommunityController::class, 'store']);
-    Route::post('/community/{id}/comments', [CommentController::class, 'store']);
+    Route::post('/community/{id}/comments',  [CommentController::class, 'store']);
+    Route::delete('/community/comments/{id}', [CommentController::class, 'destroy']);
 
     // Diseases
     Route::get('/diseases', [DiseaseController::class, 'index']);

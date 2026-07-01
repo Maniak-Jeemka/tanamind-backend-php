@@ -43,4 +43,30 @@ class CommentController extends Controller
             'data'    => $comment,
         ], 201);
     }
+
+    /**
+     * Hapus komentar milik user yang login.
+     */
+    public function destroy(Request $request, $id)
+    {
+        $comment = Comment::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$comment) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Komentar tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Komentar berhasil dihapus',
+            'data'    => null,
+        ], 200);
+    }
 }
