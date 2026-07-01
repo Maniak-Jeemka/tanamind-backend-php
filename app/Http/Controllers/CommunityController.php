@@ -16,12 +16,12 @@ class CommunityController extends Controller
     {
         $posts = CommunityPost::orderBy('created_at', 'desc')
             ->with([
-                'user:id,name,avatar,role',
+                'user:id,name,avatar,role,occupation',
                 'scanResult:id,image_path,disease_label,disease_confidence,severity_label,severity_confidence',
                 'comments' => function ($query) {
                     $query->orderBy('created_at', 'desc')
                         ->limit(3)
-                        ->with('user:id,name,avatar');
+                        ->with('user:id,name,avatar,occupation');
                 },
             ])
             ->withCount('comments')
@@ -83,7 +83,7 @@ class CommunityController extends Controller
 
         // Load relasi
         $post->load([
-            'user:id,name,avatar,role',
+            'user:id,name,avatar,role,occupation',
             'scanResult:id,image_path,disease_label,disease_confidence,severity_label,severity_confidence',
         ]);
 
@@ -92,5 +92,43 @@ class CommunityController extends Controller
             'message' => 'Post berhasil dibuat',
             'data'    => $post,
         ], 201);
+    }
+
+    /**
+     * Hapus post komunitas berdasarkan ID.
+     */
+    public function destroy($id)
+    {
+        $post = CommunityPost::find($id);
+
+        if (!$post) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Post tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Cek authorization: pemilik post atau admin
+        if ($post->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Kamu tidak memiliki akses untuk menghapus post ini',
+                'data'    => null,
+            ], 403);
+        }
+
+        // Reset is_shared pada scan_result yang bersangkutan
+        if ($post->scanResult) {
+            $post->scanResult->update(['is_shared' => false]);
+        }
+
+        $post->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Post berhasil dihapus',
+            'data'    => null,
+        ], 200);
     }
 }

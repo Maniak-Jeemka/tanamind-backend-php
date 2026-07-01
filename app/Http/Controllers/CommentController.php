@@ -43,4 +43,39 @@ class CommentController extends Controller
             'data'    => $comment,
         ], 201);
     }
+
+    /**
+     * Hapus komentar berdasarkan ID.
+     */
+    public function destroy($id)
+    {
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Komentar tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Cek authorization: pemilik komentar, pemilik post, atau admin
+        if ($comment->user_id !== Auth::id() && 
+            $comment->post->user_id !== Auth::id() && 
+            Auth::user()->role !== 'admin') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Kamu tidak memiliki akses untuk menghapus komentar ini',
+                'data'    => null,
+            ], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Komentar berhasil dihapus',
+            'data'    => null,
+        ], 200);
+    }
 }

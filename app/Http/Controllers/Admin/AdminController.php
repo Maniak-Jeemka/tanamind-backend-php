@@ -60,4 +60,37 @@ class AdminController extends Controller
             'data'    => $users,
         ], 200);
     }
+
+    /**
+     * Hapus user berdasarkan ID.
+     */
+    public function destroy($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Jangan biarkan admin menghapus dirinya sendiri
+        if ($user->id === Auth::id()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Anda tidak dapat menghapus akun Anda sendiri',
+                'data'    => null,
+            ], 400);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'User berhasil dihapus',
+            'data'    => null,
+        ], 200);
+    }
 }

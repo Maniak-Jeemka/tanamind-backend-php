@@ -99,4 +99,30 @@ class ScanController extends Controller
             'data'    => $scanResult,
         ], 200);
     }
+
+    /**
+     * Hapus riwayat scan berdasarkan ID.
+     */
+    public function destroy($id)
+    {
+        $scanResult = ScanResult::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$scanResult) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Scan tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        $scanResult->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Scan berhasil dihapus',
+            'data'    => null,
+        ], 200);
+    }
 }
