@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\ScanResult;
 use App\Models\CommunityPost;
@@ -58,6 +59,53 @@ class AdminController extends Controller
             'status'  => 'success',
             'message' => 'Daftar user berhasil diambil',
             'data'    => $users,
+        ], 200);
+    }
+
+    /**
+     * Hapus user berdasarkan ID.
+     */
+    public function destroyUser(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Cegah admin menghapus dirinya sendiri
+        if ($user->id === $request->user()->id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Tidak bisa menghapus akun sendiri',
+                'data'    => null,
+            ], 403);
+        }
+
+        // Hapus file avatar dari storage kalau ada
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        // Hapus file gambar scan dari storage
+        $scanResults = ScanResult::where('user_id', $user->id)->get();
+        foreach ($scanResults as $scan) {
+            if ($scan->image_path) {
+                Storage::disk('public')->delete($scan->image_path);
+            }
+        }
+
+        // Hapus user (cascade akan menghapus scan_results, community_posts, comments)
+        $user->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'User berhasil dihapus',
+            'data'    => null,
         ], 200);
     }
 }

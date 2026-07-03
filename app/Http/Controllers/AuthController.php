@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -95,6 +96,50 @@ class AuthController extends Controller
                 'email'      => $user->email,
                 'role'       => $user->role,
                 'avatar'     => $user->avatar,
+                'occupation' => $user->occupation,
+                'created_at' => $user->created_at,
+            ],
+        ], 200);
+    }
+
+    /**
+     * Update profil user yang sedang login.
+     */
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'occupation' => 'nullable|string|max:255',
+            'avatar'     => 'nullable|image|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Hapus avatar lama kalau ada
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
+        }
+
+        $user->name       = $validated['name'];
+        $user->occupation = $validated['occupation'] ?? null;
+        $user->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Profil berhasil diperbarui',
+            'data'    => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+                'avatar'     => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                'occupation' => $user->occupation,
                 'created_at' => $user->created_at,
             ],
         ], 200);

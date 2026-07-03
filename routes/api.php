@@ -18,6 +18,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/user',         [AuthController::class, 'me']);
+    Route::post('/user/profile', [AuthController::class, 'updateProfile']);
 
     // Scan
     Route::post('/scan',         [ScanController::class, 'store']);
@@ -28,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Community
     Route::get('/community',                [CommunityController::class, 'index']);
     Route::post('/community',               [CommunityController::class, 'store']);
+    Route::delete('/community/{id}',         [CommunityController::class, 'destroy']);
     Route::post('/community/{id}/comments',  [CommentController::class, 'store']);
     Route::delete('/community/comments/{id}', [CommentController::class, 'destroy']);
 
@@ -39,4 +41,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/stats', [AdminController::class, 'stats']);
     Route::get('/users', [AdminController::class, 'users']);
+    Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
 });

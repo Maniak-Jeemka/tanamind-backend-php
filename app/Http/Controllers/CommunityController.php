@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\CommunityPost;
 use App\Models\ScanResult;
 
@@ -92,5 +93,52 @@ class CommunityController extends Controller
             'message' => 'Post berhasil dibuat',
             'data'    => $post,
         ], 201);
+    }
+
+    /**
+     * Hapus post komunitas berdasarkan ID.
+     */
+    public function destroy(Request $request, $id)
+    {
+        $post = CommunityPost::find($id);
+
+        if (! $post) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Post tidak ditemukan',
+                'data'    => null,
+            ], 404);
+        }
+
+        // Otorisasi: hanya pemilik post atau admin yang boleh menghapus
+        $user = $request->user();
+        if ($post->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Kamu tidak memiliki izin untuk menghapus post ini',
+                'data'    => null,
+            ], 403);
+        }
+
+        // Hapus gambar scan terkait dari storage kalau ada
+        if ($post->scan_result_id) {
+            $scanResult = ScanResult::find($post->scan_result_id);
+            if ($scanResult) {
+                if ($scanResult->image_path) {
+                    Storage::disk('public')->delete($scanResult->image_path);
+                }
+                // Reset is_shared supaya scan bisa di-share ulang
+                $scanResult->update(['is_shared' => false]);
+            }
+        }
+
+        // Hapus post (komentar terhapus otomatis via cascade)
+        $post->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Post berhasil dihapus',
+            'data'    => null,
+        ], 200);
     }
 }
